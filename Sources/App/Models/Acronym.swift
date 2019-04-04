@@ -31,3 +31,5 @@ extension Acronym: Migration {}
 //    "long": "Oh My God"
 //}
 extension Acronym: Content {}
+
+extension Acronym: Parameter {} //数据库查询
