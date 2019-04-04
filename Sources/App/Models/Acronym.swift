@@ -1,5 +1,6 @@
 import Vapor
-import FluentPostgreSQL
+//import FluentPostgreSQL
+import FluentSQLite
 
 final class Acronym: Codable {
     var id: Int?
@@ -19,7 +20,8 @@ final class Acronym: Codable {
 //}
 
 //方式二
-extension Acronym: PostgreSQLModel {}
+extension Acronym: SQLiteModel {}
+//extension Acronym: PostgreSQLModel {}
 
 extension Acronym: Migration {}
 

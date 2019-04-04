@@ -19,15 +19,19 @@ public func routes(_ router: Router) throws {
                 return acronym.save(on: req)
         }
         
-       
-        let elf = try req.content.decode(Acronym.self) //EventLoopFuture<Array>
-//        return elf
-        
-        let f = elf.flatMap(to: Acronym.self, { (acronym) -> EventLoopFuture<Acronym> in
-            let a = acronym.save(on: req)
-            return a
-        })
-        return f
+
+//        let elf = try req.content.decode(Acronym.self) //EventLoopFuture<Array>
+////        return elf
+//
+//        let f = elf.flatMap(to: Acronym.self, { (acronym) -> EventLoopFuture<Acronym> in
+//            let a = acronym.save(on: req)
+//            return a
+//        })
+//        return f
     }
+    
+    router.get("api","acronyms", use: { req in
+        return Acronym.query(on: req).all()
+    })
     
 }
