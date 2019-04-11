@@ -29,6 +29,13 @@ struct AcronymsController: RouteCollection {
         acronymsRoutes.get("first", use: getFirstHandler)
         // 7 /api/acronyms/sorted
         acronymsRoutes.get("sorted", use: sortedHandler)
+        // /api/acronyms/<ACRONYM ID>/user
+        // http://localhost:8080/api/acronyms/1/user
+        acronymsRoutes.get(Acronym.parameter,"user", use: getUserHandler)
+        // /api/acronyms/<ACRONYM_ID>/categories/<CATEGORY_ID>
+        acronymsRoutes.post(Acronym.parameter,"categories",Category.parameter, use: addCategoriesHandler)
+        // /api/acronyms/<ACRONYM_ID>/categories
+        acronymsRoutes.get(Acronym.parameter, "categories", use: getCategoriesHandler)
     }
     
     func getAllHandler(_ req:Request) throws -> Future<[Acronym]> {
@@ -65,6 +72,7 @@ struct AcronymsController: RouteCollection {
                             //更新
                             acronym.short = updatedAcronym.short
                             acronym.long = updatedAcronym.long
+                            acronym.userID = updatedAcronym.userID
                             //保存并返回
                             return acronym.save(on: req)
         }
@@ -109,5 +117,30 @@ struct AcronymsController: RouteCollection {
         return  Acronym.query(on: req)
             .sort(\.short, .ascending)
             .all()
+    }
+    
+    func getUserHandler(_ req:Request) throws -> Future<User> {
+        return try req.parameters.next(Acronym.self)
+                            .flatMap(to: User.self) { acronym in  //unwrap
+                            acronym.user.get(on: req)
+        }
+    }
+    
+    func addCategoriesHandler(_ req:Request) throws -> Future<HTTPStatus> {
+        return try flatMap(to: HTTPStatus.self,
+                           req.parameters.next(Acronym.self),
+                           req.parameters.next(Category.self), { (acronym, category) -> Future<HTTPStatus> in
+                            
+                            //It uses requireID() on the models to ensure that the IDs have been set. This will throw an error if they have not been set.
+                            let pivot = try AcronymCategoryPivot(acronym.requireID(), category.requireID())
+                            return pivot.save(on: req).transform(to: .created) //201 Created
+        })
+    }
+    
+    func getCategoriesHandler(_ req:Request) throws -> Future<[Category]> {
+        return try req.parameters.next(Acronym.self)
+                                                    .flatMap(to: [Category].self) { acronym in
+                try acronym.categories.query(on: req).all()
+        }
     }
 }
