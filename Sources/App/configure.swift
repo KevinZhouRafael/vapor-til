@@ -1,6 +1,7 @@
 //import FluentSQLite
 import FluentPostgreSQL
 import Vapor
+import Leaf
 
 /// Called before your application initializes.
 //Environment set by Vapor Cloud
@@ -8,6 +9,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register providers first
 //    try services.register(FluentSQLiteProvider())
     try services.register(FluentPostgreSQLProvider())
+    
+    try services.register(LeafProvider())
 
     // Register routes to the router
     let router = EngineRouter.default()
@@ -58,8 +61,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         hostname: hostname,
         port: databasePort,
         username: username,
-        database: databaseName,
-        password: password)
+        database: databaseName)
 
     let database = PostgreSQLDatabase(config: databaseConfig)
     databases.add(database: database, as: .psql)
@@ -80,4 +82,5 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     commandConfig.useFluentCommands()
     services.register(commandConfig)
     
+    config.prefer(LeafRenderer.self, for: ViewRenderer.self)
 }
